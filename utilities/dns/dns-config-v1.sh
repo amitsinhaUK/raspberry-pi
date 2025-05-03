@@ -13,15 +13,21 @@ else
     echo "INFO: Script is running as root"
 fi
 
+echo "INFO: Installing dnsmasq"
+apt-get update
+apt-get install -y dnsmasq
+echo "INFO: dnsmasq installed successfully"
+
 # Check if dnsmasq is installed
-if ! command -v dnsmasq &> /dev/null; then
-    echo "INFO: dnsmasq could not be found"
-    echo "INFO: Installing dnsmasq"
-    apt-get update
-    apt-get install -y dnsmasq
-else
-    echo "INFO: dnsmasq is already installed"
-fi
+# if ! command -v dnsmasq &> /dev/null; then
+#     echo "INFO: dnsmasq could not be found"
+#     echo "INFO: Installing dnsmasq"
+#     apt-get update
+#     apt-get install -y dnsmasq
+#     echo "INFO: dnsmasq installed successfully"
+# else
+#     echo "INFO: dnsmasq is already installed"
+# fi
 
 echo "INFO: Configuring dnsmasq"
 
@@ -44,7 +50,6 @@ chmod 644 /etc/dnsmasq.conf
 chown root:root /etc/dnsmasq.conf
 
 echo "INFO: dnsmasq configuration file copied and permissions set"
-echo "INFO: Setting up dnsmasq to listen on all interfaces"
 
 # Checking dnsmasq service status
 echo "INFO: Checking dnsmasq service status"
@@ -52,9 +57,18 @@ echo "INFO: Checking dnsmasq service status"
 # Check if the dnsmasq service is running
 if systemctl is-active --quiet dnsmasq; then
     echo "INFO: dnsmasq service is already running"
+    echo "INFO: Restarting dnsmasq service..."
+    systemctl restart dnsmasq
+    if systemctl is-active --quiet dnsmasq; then
+        echo "INFO: dnsmasq service restarted successfully"
+    else
+        echo "ERROR: Failed to restart dnsmasq service"
+        exit 1
+    fi
 else
     echo "INFO: dnsmasq service not running"
     echo "INFO: Starting dnsmasq service..."
+    systemctl enable dnsmasq
     systemctl start dnsmasq
     
     if systemctl is-active --quiet dnsmasq; then
